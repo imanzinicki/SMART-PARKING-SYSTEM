@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Smart Parking System</title>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-pf8+XbYf2tIYwq6mQ3QYQ4m2u3U2b6lJkKf7uJrNq+Zk7sV2sN7Ykq1f9QbL6FJb2N7yF3Gk1z7zV6l5z6bQsw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <style>
+    /* Theme variables */
+    :root {
+      --bg-image: url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1950&q=80');
+      --bg-overlay: rgba(5,8,12,0.6);
+      --bg: linear-gradient(rgba(5,8,12,0.55), rgba(5,8,12,0.55)), var(--bg-image);
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --header-bg: rgba(22,27,34,0.9);
+      --card-bg: rgba(22,27,34,0.85);
+      --border: rgba(45,51,59,0.9);
+      --info-bg: rgba(48,54,61,0.85);
+      --accent: #58a6ff;
+      --free-green: #238636;
+      --occupied-red: #da3633;
+    }
+
+    /* Light theme overrides */
+    body.light-theme {
+      --bg-image: none;
+      --bg: linear-gradient(135deg, #e3f2fd 0%, #f5f5f5 100%);
+      --bg-overlay: rgba(255,255,255,0.0);
+      --text: #0b1220;
+      --muted: #475569;
+      --header-bg: rgba(255,255,255,0.95);
+      --card-bg: rgba(255,255,255,0.98);
+      --border: rgba(200,210,220,0.9);
+      --info-bg: rgba(245,247,250,0.95);
+      --accent: #0b6cff;
+      --free-green: #09804a;
+      --occupied-red: #b02a26;
+    }
+
+    /* Base */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--bg);
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--text);
+      animation: fadeIn 1s ease-in;
+      transition: background 0.4s ease, color 0.4s ease;
+      position: relative;
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Animated car background for dark mode */
+    body::after {
+      content: "🚗";
+      position: fixed;
+      bottom: -50px;
+      font-size: 100px;
+      opacity: 0.06;
+      pointer-events: none;
+      animation: carDrive 18s infinite linear;
+      z-index: 0;
+    }
+
+    body.light-theme::after {
+      opacity: 0.03;
+    }
+
+    @keyframes carDrive {
+      0% {
+        left: -150px;
+        bottom: 20%;
+      }
+      50% {
+        bottom: 25%;
+      }
+      100% {
+        left: 100vw;
+        bottom: 20%;
+      }
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: var(--bg-overlay);
+      pointer-events: none;
+      transition: background 0.4s ease;
+      z-index: -1;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Header */
+    header {
+      background: var(--header-bg);
+      color: var(--text);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+      animation: slideDown 0.8s ease-out;
+    }
+
+    .header-top {
+      padding: 18px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text);
+      transition: transform 0.2s, color 0.2s;
+    }
+
+    .logo:hover {
+      transform: translateY(-2px);
+      color: var(--accent);
+    }
+
+    .logo i {
+      color: var(--accent);
+      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .nav-menu {
+      display: flex;
+      list-style: none;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin: 0;
+      padding: 0;
+    }
+
+    .nav-menu a {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s, transform 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-menu a:hover {
+      color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .dev-button {
+      background: linear-gradient(135deg, var(--accent), #1f6feb);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      font-size: 0.95rem;
+      box-shadow: 0 4px 12px rgba(88,166,255,0.3);
+    }
+
+    .dev-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(88,166,255,0.4);
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(-40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Main Content */
+    main {
+      flex: 1;
+      position: relative;
+      z-index: 2;
+    }
+
+    .container {
+      width: 92%;
+      max-width: 1200px;
+      margin: 26px auto;
+      padding-bottom: 40px;
+    }
+
+    .top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .dashboard-title {
+      font-size: 28px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .dashboard-title i {
+      color: var(--accent);
+      font-size: 32px;
+    }
+
+    .theme-toggle {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: 999px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      transition: background 0.25s, color 0.25s, border-color 0.25s, transform 0.12s;
+      backdrop-filter: blur(6px);
+    }
+
+    .theme-toggle:hover {
+      transform: translateY(-2px);
+      background: rgba(88,166,255,0.1);
+      border-color: var(--accent);
+    }
+
+    /* Grid Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 12px 30px rgba(2,6,23,0.35);
+      border: 1px solid var(--border);
+      text-align: left;
+      transition: all 0.4s ease;
+      animation: popIn 0.6s ease-out;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 50px rgba(88,166,255,0.25);
+      border-color: var(--accent);
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.94); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .card-label {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-label i {
+      color: var(--accent);
+      font-size: 16px;
+    }
+
+    .card-value {
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--text);
+      letter-spacing: -1px;
+    }
+
+    .card-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .status {
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      display: inline-block;
+      transition: all 0.3s ease-in-out;
+      color: white;
+      align-self: flex-start;
+      border: none;
+    }
+
+    .free {
+      background: linear-gradient(135deg, var(--free-green), #2ea043);
+      box-shadow: 0 4px 15px rgba(35,134,54,0.4);
+      color: #f6fff9;
+    }
+
+    .occupied {
+      background: linear-gradient(135deg, var(--occupied-red), #f85149);
+      box-shadow: 0 4px 15px rgba(218,54,51,0.4);
+      animation: pulse 1.2s infinite;
+      color: #fff;
+    }
+
+    .info {
+      background: var(--info-bg);
+      box-shadow: 0 0 6px rgba(0,0,0,0.15);
+      color: var(--text);
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .fullAlert {
+      animation: glowFull 1s infinite;
+    }
+
+    @keyframes glowFull {
+      0% { box-shadow: 0 0 15px rgba(218,54,51,0.7); }
+      50% { box-shadow: 0 0 30px rgba(218,54,51,1); }
+      100% { box-shadow: 0 0 15px rgba(218,54,51,0.7); }
+    }
+
+    .gateOpen {
+      animation: blinkGate 0.9s infinite;
+    }
+
+    @keyframes blinkGate {
+      0% { box-shadow: 0 0 12px var(--accent); }
+      50% { box-shadow: 0 0 25px var(--accent); }
+      100% { box-shadow: 0 0 12px var(--accent); }
+    }
+
+    .car {
+      display: inline-block;
+      width: 50px;
+      height: 30px;
+      background: white;
+      border-radius: 8px;
+      position: relative;
+      animation: carAppear 0.5s ease-out forwards;
+      vertical-align: middle;
+      margin-right: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+
+    .car::before, .car::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      width: 12px;
+      height: 12px;
+      background: #222;
+      border-radius: 50%;
+    }
+
+    .car::before { left: 6px; }
+    .car::after { right: 6px; }
+
+    @keyframes carAppear {
+      0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+      100% { transform: scale(1) rotate(0); opacity: 1; }
+    }
+
+    .no-car {
+      display: inline-block;
+      font-size: 16px;
+      color: var(--accent);
+      font-weight: 800;
+      animation: fadeText 0.5s ease-in forwards;
+    }
+
+    @keyframes fadeText {
+      0% { opacity: 0; transform: translateY(-5px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Video Section */
+    .video-section {
+      background: var(--card-bg);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 12px 30px rgba(2,6,23,0.35);
+      border: 1px solid var(--border);
+      margin-bottom: 30px;
+      animation: popIn 0.6s ease-out 0.2s both;
+    }
+
+    .video-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+    }
+
+    .video-title i {
+      color: var(--accent);
+    }
+
+    .video-container {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+
+    .video-container video {
+      width: 100%;
+      height: auto;
+      max-height: 400px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .video-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 12px;
+      text-align: center;
+    }
+
+    /* Availability Section */
+    .availability-section {
+      background: var(--card-bg);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 12px 30px rgba(2,6,23,0.35);
+      border: 1px solid var(--border);
+      animation: popIn 0.6s ease-out 0.3s both;
+      margin-bottom: 30px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+    }
+
+    .section-title i {
+      color: var(--accent);
+    }
+
+    .availability-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .slot-card {
+      background: var(--info-bg);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid rgba(88,166,255,0.2);
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .slot-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+      box-shadow: 0 8px 20px rgba(88,166,255,0.15);
+    }
+
+    .slot-number {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .slot-content {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* Footer */
+    footer {
+      background: linear-gradient(135deg, var(--header-bg), rgba(22,27,34,0.7));
+      color: var(--text);
+      padding: 30px 20px;
+      text-align: center;
+      font-size: 14px;
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+      position: relative;
+      z-index: 2;
+    }
+
+    footer p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    footer a:hover {
+      color: var(--text);
+    }
+
+    footer button {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      box-shadow: none;
+      margin-top: 15px;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .header-top {
+        padding: 16px 20px;
+      }
+      .logo {
+        font-size: 1.4rem;
+      }
+      .nav-menu {
+        gap: 12px;
+        font-size: 0.95rem;
+      }
+      .dashboard-title {
+        font-size: 24px;
+      }
+      .dashboard-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      }
+    }
+
+    @media (max-width: 600px) {
+      .header-top {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 14px 16px;
+      }
+      .nav-menu {
+        width: 100%;
+        flex-wrap: wrap;
+      }
+      .container {
+        width: 95%;
+        margin: 14px auto;
+      }
+      .top-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .dashboard-title {
+        font-size: 22px;
+      }
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+      .card {
+        min-height: 100px;
+      }
+      .card-value {
+        font-size: 28px;
+      }
+      .video-section, .availability-section {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-top">
+      <a href="dashboard.html" class="logo">
+        <i class="fas fa-car-side"></i> Smart Parking
+      </a>
+      <nav>
+        <ul class="nav-menu">
+          <li><a href="dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+          <li><a href="about.html"><i class="fas fa-info-circle"></i> About</a></li>
+          <li><a href="contact.html"><i class="fas fa-envelope"></i> Contact</a></li>
+        </ul>
+      </nav>
+      <button id="devBtn" class="dev-button" title="Meet the Developers">
+        <i class="fas fa-code"></i> Developers
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <!-- Top Row with Title & Theme Toggle -->
+      <div class="top-row">
+        <div class="dashboard-title">
+          <i class="fas fa-gauge-high"></i> Real-Time Parking Monitor
+        </div>
+        <button id="themeToggle" class="theme-toggle">
+          <i id="themeIcon" class="fa-regular fa-moon"></i>
+          <span id="themeText">Dark</span>
+        </button>
+      </div>
+
+      <!-- KPIs Grid -->
+      <div class="dashboard-grid">
+        <!-- Entrance Sensor -->
+        <div class="card">
+          <div class="card-label">
+            <i class="fas fa-door-open"></i> Entrance
+          </div>
+          <div id="entrance" class="status free">CLEAR</div>
+          <div class="card-subtitle">Main entrance status</div>
+        </div>
+
+        <!-- Available Slots -->
+        <div class="card">
+          <div class="card-label">
+            <i class="fas fa-square"></i> Available Slots
+          </div>
+          <div class="card-value" id="freeSlots">--</div>
+          <div class="card-subtitle">Free parking spaces</div>
+        </div>
+
+        <!-- Parking Status -->
+        <div class="card">
+          <div class="card-label">
+            <i class="fas fa-info-circle"></i> Parking Status
+          </div>
+          <div class="card-value" style="font-size: 24px; word-break: break-word;" id="parkingStatus">--</div>
+          <div class="card-subtitle">System status</div>
+        </div>
+
+        <!-- Gate Status -->
+        <div class="card">
+          <div class="card-label">
+            <i class="fas fa-gate"></i> Gate
+          </div>
+          <div id="gateStatus" class="status free">CLOSED</div>
+          <div class="card-subtitle">Entrance gate status</div>
+        </div>
+      </div>
+
+      <!-- Parking Slots Section -->
+      <div class="availability-section">
+        <div class="section-title">
+          <i class="fas fa-map-location-dot"></i> Parking Slot Status
+        </div>
+        <div class="availability-grid">
+          <!-- Slot 1 -->
+          <div class="slot-card">
+            <div class="slot-number">Slot 1</div>
+            <div class="slot-content" id="slot1">
+              <span class="no-car">NO CAR</span>
+            </div>
+          </div>
+
+          <!-- Slot 2 -->
+          <div class="slot-card">
+            <div class="slot-number">Slot 2</div>
+            <div class="slot-content" id="slot2">
+              <span class="no-car">NO CAR</span>
+            </div>
+          </div>
+
+          <!-- Slot 3 -->
+          <div class="slot-card">
+            <div class="slot-number">Slot 3</div>
+            <div class="slot-content" id="slot3">
+              <span class="no-car">NO CAR</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Video Demo Section -->
+      <div class="video-section">
+        <div class="video-title">
+          <i class="fas fa-video"></i> Live Parking Demo
+        </div>
+        <div class="video-container">
+          <video controls width="100%" height="auto">
+            <source src="Reverse Parking with Cones __Reverse Park Step by Step.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <div class="video-subtitle">Smart parking system in action - Real-time management demonstration</div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 <strong>Smart Parking System</strong>. Intelligent IoT Solutions • All rights reserved.</p>
+    <p style="margin-top: 15px; font-size: 12px;">
+      <button id="footerDevBtn" class="dev-button" style="background: transparent; border: 1px solid var(--accent); color: var(--accent); box-shadow: none;" title="Meet the Developers">
+        <i class="fa-solid fa-code"></i> Meet Developers
+      </button>
+    </p>
+    <div class="footer-social" style="margin-top:12px; display:flex; gap:14px; justify-content:center; align-items:center; flex-wrap:wrap;">
+      <a href="https://www.instagram.com/mr_b_e_ee/" target="_blank" rel="noopener noreferrer" style="color:var(--accent); text-decoration:none; font-weight:700; display:flex; align-items:center; gap:8px; transition:color 0.2s;" onmouseover="this.style.color='#58a6ff'" onmouseout="this.style.color='var(--accent)'">
+        <i class="fab fa-instagram" style="font-size:20px; display:inline-block;"></i> <span>@mr_b_e_ee</span>
+      </a>
+      <a href="https://x.com/ManziNicki41150" target="_blank" rel="noopener noreferrer" style="color:var(--accent); text-decoration:none; font-weight:700; display:flex; align-items:center; gap:8px; transition:color 0.2s;" onmouseover="this.style.color='#58a6ff'" onmouseout="this.style.color='var(--accent)'">
+        <i class="fab fa-x-twitter" style="font-size:20px; display:inline-block;"></i> <span>@ManziNicki41150</span>
+      </a>
+      <a href="https://github.com/imanzinicki" target="_blank" rel="noopener noreferrer" style="color:var(--accent); text-decoration:none; font-weight:700; display:flex; align-items:center; gap:8px; transition:color 0.2s;" onmouseover="this.style.color='#58a6ff'" onmouseout="this.style.color='var(--accent)'">
+        <i class="fab fa-github" style="font-size:20px; display:inline-block;"></i> <span>contact Via github</span>
+      </a>
+    </div>
+  </footer>
+
+  <!-- Share Floating Button -->
+  <div id="shareWidget" class="share-widget" aria-hidden="false">
+    <button id="shareToggle" class="share-toggle" title="Share">
+      <i class="fa-solid fa-share-nodes"></i>
+    </button>
+    <div id="shareMenu" class="share-menu" aria-hidden="true">
+      <button class="share-item" id="shareWhatsapp" title="Share on WhatsApp"><i class="fa-brands fa-whatsapp"></i></button>
+      <button class="share-item" id="shareX" title="Share on X"><i class="fa-brands fa-x-twitter"></i></button>
+      <button class="share-item" id="shareFacebook" title="Share on Facebook"><i class="fa-brands fa-facebook-f"></i></button>
+      <button class="share-item" id="shareEmail" title="Share by Email"><i class="fa-solid fa-envelope"></i></button>
+      <button class="share-item" id="shareInstagram" title="Share on Instagram"><i class="fa-brands fa-instagram"></i></button>
+      <button class="share-item" id="shareCopy" title="Copy link"><i class="fa-solid fa-link"></i></button>
+    </div>
+  </div>
+
+  <style>
+    .share-widget { position: fixed; right: 18px; bottom: 18px; z-index: 1100; font-family: inherit; }
+    .share-toggle { background: linear-gradient(135deg,var(--accent),#1f6feb); color: #fff; border: none; width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 30px rgba(31,111,235,0.25); cursor:pointer; font-size:18px; }
+    .share-menu { display:none; margin-bottom: 12px; margin-right: 4px; transform-origin: right bottom; }
+    .share-menu.show { display:flex; flex-direction:column; gap:10px; align-items:flex-end; }
+    .share-item { background: var(--card-bg); color: var(--text); border:1px solid var(--border); width:46px; height:46px; border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; box-shadow:0 6px 18px rgba(2,6,23,0.25); }
+    .share-item:hover { transform: translateY(-3px); box-shadow:0 10px 28px rgba(2,6,23,0.28); }
+    .share-item i { color: var(--accent); }
+    @media (max-width:600px){ .share-widget{right:12px; bottom:12px;} .share-toggle{width:50px;height:50px;} .share-item{width:44px;height:44px;} }
+  </style>
+
+  <script>
+    const TOKEN = "dOTrpimvJMPVJnHfm6IApGZZpcwZRrL5";
+
+    async function readDatastream(vpin) {
+      const url = `https://blynk.cloud/external/api/get?token=${TOKEN}&${vpin}`;
+      const response = await fetch(url);
+      return response.text();
+    }
+
+    async function updateUI() {
+      try {
+        // Entrance Sensor
+        let entrance = await readDatastream("v0");
+        entrance = (entrance || "").toString().trim();
+        let e = document.getElementById("entrance");
+        const entranceOccupied = (entrance === "255" || entrance === "1" || entrance.toLowerCase() === "true" || parseInt(entrance) === 255 || parseInt(entrance) === 1);
+        e.textContent = entranceOccupied ? "CAR DETECTED" : "CLEAR";
+        e.className = "status " + (entranceOccupied ? "occupied" : "free");
+        console.log("V0 Entrance:", entrance, "| entranceOccupied:", entranceOccupied);
+
+        // Slots 1-3 with Car / No-car animation
+        for (let i = 1; i <= 3; i++) {
+          let s = await readDatastream("v" + i);
+          s = (s || "").toString().trim();
+          let slot = document.getElementById("slot" + i);
+          // Prefer explicit 1/0 mapping; fallback to 255 or "true"
+          let occupied = false;
+          if (s === "1" || parseInt(s) === 1) occupied = true;
+          else if (s === "0" || parseInt(s) === 0) occupied = false;
+          else if (s === "255" || parseInt(s) === 255) occupied = true;
+          else if (s.toLowerCase() === "true") occupied = true;
+
+          console.log(`V${i} Slot:`, s, "| occupied:", occupied);
+
+          if (occupied) {
+            slot.textContent = 'CAR PRESENT';
+            slot.className = "status occupied";
+          } else {
+            slot.textContent = 'NO CAR';
+            slot.className = "status free";
+          }
+        }
+
+        // Free Slots (V4)
+        let free = await readDatastream("v4");
+        free = free.trim();
+        let freeSlot = document.getElementById("freeSlots");
+        freeSlot.textContent = free;
+        console.log("V4 Free slots:", free);
+
+        // Glow when full
+        if (free == "0") freeSlot.classList.add("fullAlert");
+        else freeSlot.classList.remove("fullAlert");
+
+        // Parking Status (V5)
+        let pState = await readDatastream("v5");
+        pState = pState.trim();
+        document.getElementById("parkingStatus").textContent = pState;
+        console.log("V5 Parking Status:", pState);
+
+        // Gate Status (V6)
+        let gate = await readDatastream("v6");
+        gate = gate.trim();
+        let g = document.getElementById("gateStatus");
+        g.textContent = gate;
+
+        // Blink animation when OPEN
+        if (gate.includes("OPEN")) g.classList.add("gateOpen");
+        else g.classList.remove("gateOpen");
+        console.log("V6 Gate:", gate);
+      } catch (error) {
+        console.error("Error updating UI:", error);
+      }
+    }
+
+    // Update every 2 seconds
+    setInterval(updateUI, 2000);
+
+    // Initial update
+    updateUI();
+
+    // Theme toggle logic
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const themeText = document.getElementById('themeText');
+
+    // Initialize from saved preference if any
+    if (localStorage.getItem('parkingTheme') === 'light') {
+      document.body.classList.add('light-theme');
+      themeIcon.className = 'fa-regular fa-sun';
+      themeText.textContent = 'Light';
+    } else {
+      themeIcon.className = 'fa-regular fa-moon';
+      themeText.textContent = 'Dark';
+    }
+
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('light-theme');
+      if (document.body.classList.contains('light-theme')) {
+        localStorage.setItem('parkingTheme', 'light');
+        themeIcon.className = 'fa-regular fa-sun';
+        themeText.textContent = 'Light';
+      } else {
+        localStorage.setItem('parkingTheme', 'dark');
+        themeIcon.className = 'fa-regular fa-moon';
+        themeText.textContent = 'Dark';
+      }
+    });
+
+    // Developer button navigation
+    document.getElementById("devBtn").addEventListener("click", () => {
+      window.location.href = "index.html#developers";
+    });
+
+    document.getElementById("footerDevBtn").addEventListener("click", () => {
+      window.location.href = "index.html#developers";
+    });
+
+    // Share widget logic
+    const shareUrl = encodeURIComponent('https://imanzinicki.github.io/SMART-PARKING-SYSTEM/');
+    const shareText = encodeURIComponent('Check out Smart Parking System');
+    const shareToggle = document.getElementById('shareToggle');
+    const shareMenu = document.getElementById('shareMenu');
+
+    shareToggle.addEventListener('click', () => {
+      const isShown = shareMenu.classList.toggle('show');
+      shareMenu.setAttribute('aria-hidden', !isShown);
+    });
+
+    document.getElementById('shareWhatsapp').addEventListener('click', () => {
+      const url = `https://wa.me/?text=${shareText}%20${shareUrl}`;
+      window.open(url, '_blank');
+    });
+
+    document.getElementById('shareX').addEventListener('click', () => {
+      const url = `https://twitter.com/intent/tweet?text=${shareText}%20${shareUrl}`;
+      window.open(url, '_blank');
+    });
+
+    document.getElementById('shareFacebook').addEventListener('click', () => {
+      const url = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`;
+      window.open(url, '_blank');
+    });
+
+    document.getElementById('shareEmail').addEventListener('click', () => {
+      const mailto = `mailto:?subject=${shareText}&body=${shareText}%20${shareUrl}`;
+      window.location.href = mailto;
+    });
+
+    document.getElementById('shareInstagram').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(decodeURIComponent(shareUrl));
+        alert('Link copied to clipboard. Paste into Instagram (story or DM) to share.');
+        window.open('https://www.instagram.com/', '_blank');
+      } catch (err) {
+        alert('Please copy the link manually: ' + decodeURIComponent(shareUrl));
+      }
+    });
+
+    document.getElementById('shareCopy').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(decodeURIComponent(shareUrl));
+        alert('Link copied to clipboard');
+      } catch (err) {
+        prompt('Copy this link:', decodeURIComponent(shareUrl));
+      }
+    });
+  </script>
+</body>
+</html>
